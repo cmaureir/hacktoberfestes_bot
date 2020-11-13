@@ -1,5 +1,6 @@
 import asyncio
 import configparser
+import csv
 from enum import Enum
 
 import discord
@@ -30,20 +31,21 @@ class RegistrationStatus(Enum):
 def get_ready_tickets():
     registered = set()
     with open("ready.csv", "r") as f:
+        reader = csv.reader(f)
         try:
-            registered = set(int(line) for line in (tmp_line.strip() for tmp_line in f) if line)
+            registered = set(int(line[0]) for line in reader)
         except ValueError:
             print("Error converting lines to integeres")
     return registered
 
 
-def register_user(n):
+def register_user(n, msg):
     registered = get_ready_tickets()
     remaining = RIDS - registered
     if n in remaining:
         with open("ready.csv", "a") as f:
-            f.write(str(n))
-            f.write("\n")
+            csv_writer = csv.writer(f)
+            csv_writer.writerow([str(n), msg.author, msg.created_at])
         return RegistrationStatus.OK
     else:
         if n in registered:
@@ -82,7 +84,7 @@ async def registro(ctx, ticket_number: str):
         role = discord.utils.get(ctx.message.author.guild.roles, name=ROLE)
 
         msg = None
-        status = register_user(number)
+        status = register_user(number, ctx.message)
 
         if status == RegistrationStatus.OK:
             msg = f"Usuario {ctx.message.author.mention} registrado! :)"
