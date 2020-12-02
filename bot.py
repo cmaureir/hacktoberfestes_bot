@@ -19,7 +19,7 @@ LIST = config["DEFAULT"]["List"]
 
 RIDS = set(pd.read_csv(LIST)["Order ID"].apply(int))
 
-bot = commands.Bot(command_prefix="!")
+bot = commands.Bot(command_prefix="%")
 
 
 class RegistrationStatus(Enum):
@@ -34,8 +34,8 @@ def get_ready_tickets():
         reader = csv.reader(f)
         try:
             registered = set(int(line[0]) for line in reader)
-        except ValueError:
-            print("Error converting lines to integeres")
+        except (ValueError, IndexError):
+            print("Error converting lines to integers")
     return registered
 
 
@@ -53,6 +53,11 @@ def register_user(n, msg):
         else:
             return RegistrationStatus.NOT_FOUND
 
+
+@bot.command(name="ping", help="Comando de prueba", pass_context=True)
+async def estado(ctx):
+    if str(ctx.channel) == ADMIN_CHANNEL:
+        await ctx.send("pong")
 
 @bot.command(name="estado", help="Comando para ver el estado actual de regitros", pass_context=True)
 async def estado(ctx):
